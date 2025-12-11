@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách sản phẩm{% endblock %}
+
+{% block content %}
+<h2 style="color: #667eea; margin-bottom: 20px;">📦 Danh Sách Sản Phẩm</h2>
+
+{% if products %}
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên sản phẩm</th>
+            <th>Mô tả</th>
+            <th>Giá</th>
+            <th>Số lượng</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.id }}</td>
+            <td><strong>{{ product.name }}</strong></td>
+            <td>{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</td>
+            <td style="color: #28a745; font-weight: 600;">{{ "{:,.0f}".format(product.price) }} đ</td>
+            <td>{{ product.quantity }}</td>
+            <td>{{ product.created_at.strftime('%d/%m/%Y') }}</td>
+            <td>
+                <div class="actions">
+                    <a href="{{ url_for('edit_product', id=product.id) }}" class="btn btn-warning" style="padding: 8px 16px; font-size: 14px;">✏️ Sửa</a>
+                    <a href="{{ url_for('delete_product', id=product.id) }}" class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="return confirm('Bạn có chắc muốn xóa?')">🗑️ Xóa</a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <div style="font-size: 80px;">📭</div>
+    <h3 style="color: #999; margin: 20px 0;">Chưa có sản phẩm nào</h3>
+    <a href="{{ url_for('add_product') }}" class="btn btn-success">➕ Thêm sản phẩm đầu tiên</a>
+</div>
+{% endif %}
+{% endblock %}
