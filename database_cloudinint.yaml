@@ -1,0 +1,43 @@
+#cloud-config
+# Database Server Cloud-Init Configuration
+
+users:
+  - name: dbadmin
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjqgTkKo1I22pE4+d1qGRnoNRJIxBKdr31GCdvydq3Rd8dcn77NTUWz4SHzHcuhnEjMR5sf19x/U9yzuWmjeBBL59G3vjz9Te55im9awxtOGP6VsdMhWVOXWHyYCb8oxmUdxhxT6D9NZ6K+SvN6CcNzWbCKveoltDHDRbIwPkAAVM7gtlD6nT3XzNO4q1N08weePmUYsIuPq4dfl2qePoac9d+G5wGxbp1ACZe/wB7G9YIl1yzbV/sr9KKlKEToYkz7d7zRxZA2T41PB4dYOEiK+eXJAsAUxwnajzXuGlOBYIKpA70RnxOYC1t7oFoE2wCZOKa8S5x7Asy/b5qTdFF Generated-by-Nova
+
+packages:
+  - mysql-server
+
+package_update: true
+package_upgrade: true
+
+write_files:
+  - path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    permissions: '0644'
+    content: |
+      [mysqld]
+      pid-file        = /var/run/mysqld/mysqld.pid
+      socket          = /var/run/mysqld/mysqld.sock
+      datadir         = /var/lib/mysql
+      log-error       = /var/log/mysql/error.log
+      bind-address    = 0.0.0.0
+      mysqlx-bind-address = 0.0.0.0
+      max_connections = 200
+      character-set-server = utf8mb4
+      collation-server = utf8mb4_unicode_ci
+
+runcmd:
+  - systemctl start mysql
+  - systemctl enable mysql
+  - sleep 5
+  - mysql -e "CREATE DATABASE IF NOT EXISTS flaskdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+  - mysql -e "CREATE USER IF NOT EXISTS 'flaskuser'@'%' IDENTIFIED BY 'FlaskPass123';"
+  - mysql -e "GRANT ALL PRIVILEGES ON flaskdb.* TO 'flaskuser'@'%';"
+  - mysql -e "FLUSH PRIVILEGES;"
+  - systemctl restart mysql
+
+final_message: "Database server deployed successfully. MySQL is listening on port 3306"

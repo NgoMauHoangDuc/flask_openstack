@@ -1,0 +1,108 @@
+#cloud-config
+# Web Server Cloud-Init Configuration
+# Yêu cầu: Sửa DB_HOST thành IP của database server trước khi deploy
+
+users:
+  - name: flaskuser
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjqgTkKo1I22pE4+d1qGRnoNRJIxBKdr31GCdvydq3Rd8dcn77NTUWz4SHzHcuhnEjMR5sf19x/U9yzuWmjeBBL59G3vjz9Te55im9awxtOGP6VsdMhWVOXWHyYCb8oxmUdxhxT6D9NZ6K+SvN6CcNzWbCKveoltDHDRbIwPkAAVM7gtlD6nT3XzNO4q1N08weePmUYsIuPq4dfl2qePoac9d+G5wGxbp1ACZe/wB7G9YIl1yzbV/sr9KKlKEToYkz7d7zRxZA2T41PB4dYOEiK+eXJAsAUxwnajzXuGlOBYIKpA70RnxOYC1t7oFoE2wCZOKa8S5x7Asy/b5qTdFF Generated-by-Nova
+
+packages:
+  - python3
+  - python3-pip
+  - python3-venv
+  - mysql-client
+  - git
+  - nginx
+  - supervisor
+
+package_update: true
+package_upgrade: true
+
+write_files:
+  - path: /etc/nginx/sites-available/flask_app
+    permissions: '0644'
+    content: |
+      server {
+          listen 80;
+          server_name _;
+          location / {
+              proxy_pass http://127.0.0.1:5000;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+
+  - path: /etc/supervisor/conf.d/flask_app.conf
+    permissions: '0644'
+    content: |
+      [program:flask_app]
+      command=/opt/flask_app/venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 app:app
+      directory=/opt/flask_app
+      user=flaskuser
+      autostart=true
+      autorestart=true
+      stderr_logfile=/var/log/flask_app.err.log
+      stdout_logfile=/var/log/flask_app.out.log
+      environment=DB_HOST="CHANGE_TO_DB_IP",DB_USER="flaskuser",DB_PASS="FlaskPass123",DB_NAME="flaskdb"
+
+  - path: /tmp/setup.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      REPO_URL="https://github.com/NgoMauHoangDuc/flask_openstack.git"
+      cd /opt
+      git clone $REPO_URL flask_app
+      chown -R flaskuser:flaskuser /opt/flask_app
+      cd /opt/flask_app
+      sudo -u flaskuser python3 -m venv venv
+      sudo -u flaskuser venv/bin/pip install --upgrade pip
+      sudo -u flaskuser venv/bin/pip install -r requirements.txt
+
+  - path: /tmp/init_db.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      # Đợi database server sẵn sàng
+      DB_HOST="${DB_HOST:-CHANGE_TO_DB_IP}"
+      echo "Waiting for database at $DB_HOST..."
+      until mysql -h $DB_HOST -u flaskuser -pFlaskPass123 -e "SELECT 1" &>/dev/null; do
+        echo "Database not ready, retrying in 5 seconds..."
+        sleep 5
+      done
+      echo "Database is ready!"
+      
+      # Tạo tables
+      cd /opt/flask_app
+      export DB_HOST=$DB_HOST
+      export DB_USER=flaskuser
+      export DB_PASS=FlaskPass123
+      export DB_NAME=flaskdb
+      sudo -u flaskuser -E venv/bin/python - << 'EOF'
+      from app import app, db
+      with app.app_context():
+          db.create_all()
+          print("Tables created successfully!")
+      EOF
+
+runcmd:
+  - export DB_HOST=CHANGE_TO_DB_IP
+  - bash /tmp/setup.sh
+  - rm -f /etc/nginx/sites-enabled/default
+  - ln -s /etc/nginx/sites-available/flask_app /etc/nginx/sites-enabled/
+  - systemctl restart nginx
+  - systemctl enable nginx
+  - systemctl enable supervisor
+  - systemctl restart supervisor
+  - sleep 5
+  - bash /tmp/init_db.sh
+  - supervisorctl reread
+  - supervisorctl update
+  - supervisorctl start flask_app
+
+final_message: "Web server deployed successfully"
