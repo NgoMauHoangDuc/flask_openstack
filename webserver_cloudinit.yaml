@@ -1,6 +1,4 @@
 #cloud-config
-# Web Server Cloud-Init Configuration
-# Yêu cầu: Sửa DB_HOST thành IP của database server trước khi deploy
 
 users:
   - name: flaskuser
@@ -68,21 +66,15 @@ write_files:
     permissions: '0755'
     content: |
       #!/bin/bash
-      # Đợi database server sẵn sàng
-      DB_HOST="${DB_HOST:-192.168.234.135}"
+      DB_HOST="192.168.234.135"
       echo "Waiting for database at $DB_HOST..."
       until mysql -h $DB_HOST -u flaskuser -pFlaskPass123 -e "SELECT 1" &>/dev/null; do
         echo "Database not ready, retrying in 5 seconds..."
         sleep 5
       done
       echo "Database is ready!"
-      
-      # Tạo tables
+
       cd /opt/flask_app
-      export DB_HOST=$DB_HOST
-      export DB_USER=flaskuser
-      export DB_PASS=FlaskPass123
-      export DB_NAME=flaskdb
       sudo -u flaskuser -E venv/bin/python - << 'EOF'
       from app import app, db
       with app.app_context():
@@ -91,7 +83,6 @@ write_files:
       EOF
 
 runcmd:
-  - export DB_HOST=192.168.234.135
   - bash /tmp/setup.sh
   - rm -f /etc/nginx/sites-enabled/default
   - ln -s /etc/nginx/sites-available/flask_app /etc/nginx/sites-enabled/

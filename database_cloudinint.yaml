@@ -1,5 +1,4 @@
 #cloud-config
-# Database Server Cloud-Init Configuration
 
 users:
   - name: dbadmin
