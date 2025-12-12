@@ -7,7 +7,7 @@ users:
     shell: /bin/bash
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     ssh-authorized-keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjqgTkKo1I22pE4+d1qGRnoNRJIxBKdr31GCdvydq3Rd8dcn77NTUWz4SHzHcuhnEjMR5sf19x/U9yzuWmjeBBL59G3vjz9Te55im9awxtOGP6VsdMhWVOXWHyYCb8oxmUdxhxT6D9NZ6K+SvN6CcNzWbCKveoltDHDRbIwPkAAVM7gtlD6nT3XzNO4q1N08weePmUYsIuPq4dfl2qePoac9d+G5wGxbp1ACZe/wB7G9YIl1yzbV/sr9KKlKEToYkz7d7zRxZA2T41PB4dYOEiK+eXJAsAUxwnajzXuGlOBYIKpA70RnxOYC1t7oFoE2wCZOKa8S5x7Asy/b5qTdFF Generated-by-Nova
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC69ejkhXiSNAfW/oUSA3u8zEB7sCYCKcAT5PrQ8e2cV8Sp9vTxHwG06h+H+W/thVqRffZVkFBWYORAH16Im0fmyOLfTEee/knEXzi4Yq+War442Wm/GMF2tXSpVToD+17k113m2hhtVYsQxW6bB9e/HgnNq0lv9Syh0bvtvaevZ2RKr70MtssSs9/0OglI6LdgVgv6GKWz0Yj10XYwOxP48zZIinO8Q+azedIGm1Pgkvkp3t16IGWV0xkqu2KTRhTSziPxITKzb7B/bgGNExZ3ucJcVDueN3kKHAUk4kUQqh2Tp2TSAdmzxp2DgnVSmviiy1bzIiqsKvYdRSycx7LZ Generated-by-Nova
 
 packages:
   - mysql-server
