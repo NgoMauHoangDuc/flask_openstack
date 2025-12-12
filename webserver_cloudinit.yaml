@@ -47,7 +47,7 @@ write_files:
       autorestart=true
       stderr_logfile=/var/log/flask_app.err.log
       stdout_logfile=/var/log/flask_app.out.log
-      environment=DB_HOST="192.168.234.135",DB_USER="flaskuser",DB_PASS="FlaskPass123",DB_NAME="flaskdb"
+      environment=DB_HOST="192.168.234.50",DB_USER="flaskuser",DB_PASS="FlaskPass123",DB_NAME="flaskdb"
 
   - path: /tmp/setup.sh
     permissions: '0755'
@@ -66,7 +66,7 @@ write_files:
     permissions: '0755'
     content: |
       #!/bin/bash
-      DB_HOST="192.168.234.135"
+      DB_HOST="192.168.234.50"
       echo "Waiting for database at $DB_HOST..."
       until mysql -h $DB_HOST -u flaskuser -pFlaskPass123 -e "SELECT 1" &>/dev/null; do
         echo "Database not ready, retrying in 5 seconds..."

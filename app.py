@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 
 # Đọc database config từ environment variables
-DB_HOST = os.getenv('DB_HOST', '192.168.234.135')
+DB_HOST = os.getenv('DB_HOST', '192.168.234.50')
 DB_USER = os.getenv('DB_USER', 'flaskuser')
 DB_PASS = os.getenv('DB_PASS', 'FlaskPass123')
 DB_NAME = os.getenv('DB_NAME', 'flaskdb')
