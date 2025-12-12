@@ -1,0 +1,44 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - haproxy
+
+write_files:
+  - path: /etc/haproxy/haproxy.cfg
+    permissions: '0644'
+    content: |
+      global
+          log /dev/log local0
+          log /dev/log local1 notice
+          daemon
+          maxconn 4096
+
+      defaults
+          log     global
+          mode    http
+          option  httplog
+          option  dontlognull
+          timeout connect 5s
+          timeout client  50s
+          timeout server  50s
+          retries 3
+
+      frontend http_front
+          bind *:80
+          default_backend flask_backend
+
+      backend flask_backend
+          balance roundrobin
+          option httpchk GET /
+          http-check expect status 200
+
+          server web1 192.168.234.101:80 check
+          server web2 192.168.234.102:80 check
+
+runcmd:
+  - systemctl enable haproxy
+  - systemctl restart haproxy
+
+final_message: "HAProxy Load Balancer deployed successfully!"
